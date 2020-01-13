@@ -7,3 +7,4 @@ nohup.out
 *env-config.js*
 *pystol-ui/.env
 *pystol-ui/dist
+actions/releases/*
