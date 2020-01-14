@@ -7,6 +7,7 @@ license: ["Apache-2.0"]
 readme: README.md
 tags:
   - pystol
+  - pystol_actions
   - fault_injection
   - chaos_engineering
 repository: "https://github.com/pystol/pystol-galaxy"
