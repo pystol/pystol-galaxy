@@ -1,6 +1,6 @@
 namespace: "pystol"
 name: "actions"
-version: "0.1.6"
+version: "0.2.3"
 description: "Pystol native actions"
 authors: ["Carlos Camacho>"]
 license: ["Apache-2.0"]
@@ -10,4 +10,5 @@ tags:
   - pystol_actions
   - fault_injection
   - chaos_engineering
+  - pingtest
 repository: "https://github.com/pystol/pystol-galaxy"

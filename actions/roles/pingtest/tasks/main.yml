@@ -1,6 +1,24 @@
-- name: Gather some real facts FROM A DELTOID ROLE!
+---
+- name: Gather some real facts from the role
   pystol.actions.real_facts:
-    name: John Doe
+    name: This is a test
   register: testout
+
 - debug:
     msg: "{{ testout }}"
+
+- name: Get a list of all pods from any namespace
+  k8s_info:
+    kind: Pod
+  register: pingtest_pod_list
+
+- debug: var=pingtest_pod_list
+
+- name: Get the Internal IP of the first node
+  shell: kubectl get nodes -o jsonpath='{ $.items[*].status.addresses[?(@.type=="InternalIP")].address }' | head -1
+  register: pingtest_node_ip
+
+- debug: var=pingtest_node_ip.stdout
+
+- name: Ping the internal IP of a node from the pod
+  command: "ping -c 2 {{ pingtest_node_ip.stdout }}"
