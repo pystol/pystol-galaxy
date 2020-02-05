@@ -2,10 +2,13 @@
 #
 # Begining of mandatory lines
 #
+- debug:
+    msg: "Ansible execution of action: {{ pystol_action_id }}"
+
 - name: Update the CR with the start of the action
   block:
-  - name: Apply the chaos result CR
-     shell: "kubectl patch pystolactions "{{ pystol_action_id }}" --type='json' -p='[{"op": "replace", "path": "/spec/state", "value":"Startttttin! :)"}]'"
+  - name: Apply the result CR
+    shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/state\", \"value\":\"Startttttin! :)\"}]'"
 #    shell: kubectl apply find_the_cr status starting the action
 # We need to log here the action state 
 # Waiting, Running, Finished with errors, Finished successfully
@@ -34,21 +37,21 @@
 #
 # Begining of mandatory lines
 #
-  - name: Apply the chaos result CR
-    shell: "kubectl patch pystolactions "{{ pystol_action_id }}" --type='json' -p='[{"op": "replace", "path": "/spec/state", "value":"Exec done :P"}]'"
+  - name: Apply the result CR
+    shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/state\", \"value\":\"Startttttin! :)\"}]'"
 
   - set_fact:
       execution: "Passed"
   rescue:
     - set_fact:
         execution: "Failed"
-    - name: Apply the chaos result CR
-      shell: "kubectl patch pystolactions "{{ pystol_action_id }}" --type='json' -p='[{"op": "replace", "path": "/spec/state", "value":"FaIlEd :("}]'"
+    - name: Apply the  result CR
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/state\", \"value\":\"Startttttin! :)\"}]'"
   always:
     - name: Update the CR with the end of the action
       block:
-      - name: Apply the chaos result CR
-        shell: "kubectl patch pystolactions "{{ pystol_action_id }}" --type='json' -p='[{"op": "replace", "path": "/spec/state", "value":"FinIsHeD :)"}]'"
+      - name: Apply the result CR
+        shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/state\", \"value\":\"Startttttin! :)\"}]'"
 #        shell: kubectl apply find_the_cr status execution plus output 
 #
 # End of mandatory lines
