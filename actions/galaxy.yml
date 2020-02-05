@@ -1,6 +1,6 @@
 namespace: "pystol"
 name: "actions"
-version: "0.2.3"
+version: "0.2.4"
 description: "Pystol native actions"
 authors: ["Carlos Camacho>"]
 license: ["Apache-2.0"]

@@ -5,7 +5,7 @@
 - name: Update the CR with the start of the action
   block:
   - name: Apply the chaos result CR
-    shell: echo "asdf"
+     shell: kubectl patch pystolactions "{{ pystol_action_id }}" --type='json' -p='[{"op": "replace", "path": "/spec/state", "value":"Startttttin! :)"}]'
 #    shell: kubectl apply find_the_cr status starting the action
 # We need to log here the action state 
 # Waiting, Running, Finished with errors, Finished successfully
