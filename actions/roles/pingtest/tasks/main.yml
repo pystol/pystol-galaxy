@@ -34,11 +34,16 @@
 #
 # Begining of mandatory lines
 #
+  - name: Apply the chaos result CR
+    shell: kubectl patch pystolactions "{{ pystol_action_id }}" --type='json' -p='[{"op": "replace", "path": "/spec/state", "value":"Exec done :P"}]'
+
   - set_fact:
       execution: "Passed"
   rescue:
     - set_fact:
         execution: "Failed"
+    - name: Apply the chaos result CR
+      shell: kubectl patch pystolactions "{{ pystol_action_id }}" --type='json' -p='[{"op": "replace", "path": "/spec/state", "value":"FaIlEd :("}]'
   always:
     - name: Update the CR with the end of the action
       block:
