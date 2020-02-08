@@ -1,8 +1,5 @@
 name: galaxy-publish
-on:
-  push:
-    paths:
-    - 'actions/galaxy.yml'
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
