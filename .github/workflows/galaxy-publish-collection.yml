@@ -1,4 +1,4 @@
-name: galaxy-publish-collection-build
+name: galaxy-publish
 on:
   push:
     paths:
