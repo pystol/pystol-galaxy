@@ -1,10 +1,10 @@
 namespace: "pystol"
 name: "actions"
-version: "0.2.5"
+version: "0.2.6"
 description: "Pystol native actions"
 authors: ["Carlos Camacho>"]
 license: ["Apache-2.0"]
-readme: README.md
+readme: ../README.md
 tags:
   - pystol
   - pystol_actions
