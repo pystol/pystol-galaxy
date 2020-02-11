@@ -8,13 +8,11 @@
 - name: Update the CR with the start of the action
   block:
   - name: Apply the result CR
-    shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/state\", \"value\":\"Startttttin! :)\"}]'"
-#    shell: kubectl apply find_the_cr status starting the action
-# We need to log here the action state 
-# Waiting, Running, Finished with errors, Finished successfully
+    shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"RUN\"}]'"
 #
 # End of mandatory lines
 #
+
 - name: Action execution block
   block:
   - name: Gather some real facts from the role
@@ -34,25 +32,24 @@
   - debug: var=pingtest_node_ip.stdout
   - name: Ping the internal IP of a node from the pod
     command: "ping -c 2 {{ pingtest_node_ip.stdout }}"
+    register: ping_result
+    failed_when: >
+      ("100% packet loss" in ping_result.stdout) or
+      (ret.stderr != '') or
+      (ret.rc == 10)
 #
 # Begining of mandatory lines
 #
   - name: Apply the result CR
-    shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/state\", \"value\":\"Startttttin! :)\"}]'"
-
-  - set_fact:
-      execution: "Passed"
+    shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FPA\"}]'"
   rescue:
-    - set_fact:
-        execution: "Failed"
     - name: Apply the  result CR
-      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/state\", \"value\":\"Startttttin! :)\"}]'"
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FFA\"}]'"
   always:
     - name: Update the CR with the end of the action
       block:
       - name: Apply the result CR
-        shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/state\", \"value\":\"Startttttin! :)\"}]'"
-#        shell: kubectl apply find_the_cr status execution plus output 
+        shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_result\", \"value\":\"{{ ping_result.stdout | from_json }}\"}]'"
 #
 # End of mandatory lines
 #
