@@ -10,9 +10,7 @@
         shell: |
             kubectl patch pystolactions {{ pystol_action_id }} \
             --type='json' \
-            -p='[{\"op\": \"replace\",
-                  \"path\": \"/spec/action_state\",
-                  \"value\":\"RUN\"}]'
+            -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"RUN\"}]'
 #
 # End of mandatory lines
 #
@@ -32,10 +30,7 @@
       - name: Get the Internal IP of the first node
         shell: |
             kubectl get nodes -o \
-            jsonpath='
-                {
-                $.items[*].status.addresses[?(@.type=="InternalIP")].address
-                }' \
+            jsonpath='{$.items[*].status.addresses[?(@.type=="InternalIP")].address}' \
             | head -1
         register: pingtest_node_ip
       - debug: var=pingtest_node_ip.stdout
@@ -57,17 +52,13 @@
         shell: |
             kubectl patch pystolactions {{ pystol_action_id }} \
             --type='json' \
-            -p='[{\"op\": \"replace\",
-                  \"path\": \"/spec/action_state\",
-                  \"value\":\"FPA\"}]'
+            -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FPA\"}]'
   rescue:
       - name: Apply the  result CR
         shell: |
             kubectl patch pystolactions {{ pystol_action_id }} \
             --type='json' \
-            -p='[{\"op\": \"replace\",
-                  \"path\": \"/spec/action_state\",
-                  \"value\":\"FFA\"}]'
+            -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FFA\"}]'
   always:
       #
       # In the set_fact you need to calculate
@@ -85,16 +76,12 @@
               shell: |
                   kubectl patch pystolactions {{ pystol_action_id }} \
                   --type='json' \
-                  -p='[{\"op\": \"replace\",
-                        \"path\": \"/spec/action_stdout\",
-                        \"value\":\" {{ pystol_action_stdout }} \"}]'
+                  -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stdout\", \"value\":\" {{ pystol_action_stdout }} \"}]'
             - name: Apply the result CR for the stderr
               shell: |
                   kubectl patch pystolactions {{ pystol_action_id }} \
                   --type='json' \
-                  -p='[{\"op\": \"replace\",
-                        \"path\": \"/spec/action_stderr\",
-                        \"value\":\" {{ pystol_action_stderr }} \"}]'
+                  -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stderr\", \"value\":\" {{ pystol_action_stderr }} \"}]'
 #
 # End of mandatory lines
 #
