@@ -10,9 +10,7 @@
       shell: |
         kubectl patch pystolactions {{ pystol_action_id }} \
         --type='json' \
-        -p='[{\"op\": \"replace\",
-              \"path\": \"/spec/action_state\",
-              \"value\":\"RUN\"}]'
+        -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"RUN\"}]'
 #
 # End of mandatory lines
 #
