@@ -49,13 +49,13 @@
     #
     - name: Apply the result CR
       shell: |
-        kubectl patch pystolactions {{ pystol_action_id }} \
+        kubectl patch pystolactions "{{ pystol_action_id }}" \
         --type='json' \
         -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FPA\"}]'
   rescue:
     - name: Apply the  result CR
       shell: |
-        kubectl patch pystolactions {{ pystol_action_id }} \
+        kubectl patch pystolactions "{{ pystol_action_id }}" \
         --type='json' \
         -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FFA\"}]'
   always:
@@ -73,14 +73,14 @@
       block:
         - name: Apply the result CR for the stdout
           shell: |
-            kubectl patch pystolactions {{ pystol_action_id }} \
+            kubectl patch pystolactions "{{ pystol_action_id }}" \
             --type='json' \
-            -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stdout\", \"value\":\" {{ pystol_action_stdout }} \"}]'
+            -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stdout\", \"value\":\" "{{ pystol_action_stdout }}" \"}]'
         - name: Apply the result CR for the stderr
           shell: |
-            kubectl patch pystolactions {{ pystol_action_id }} \
+            kubectl patch pystolactions "{{ pystol_action_id }}" \
             --type='json' \
-            -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stderr\", \"value\":\" {{ pystol_action_stderr }} \"}]'
+            -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stderr\", \"value\":\" "{{ pystol_action_stderr }}" \"}]'
 #
 # End of mandatory lines
 #
