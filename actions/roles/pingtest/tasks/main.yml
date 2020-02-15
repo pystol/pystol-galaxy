@@ -5,7 +5,7 @@
 - debug:
       msg: "Ansible execution of action: {{ pystol_action_id }}"
 - name: Update the CR with the start of the action
-  block:
+  block: |4
       - name: Apply the result CR
         shell: |
             kubectl patch pystolactions {{ pystol_action_id }} \
