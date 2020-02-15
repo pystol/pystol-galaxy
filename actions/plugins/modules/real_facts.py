@@ -1,6 +1,5 @@
-#!/usr/bin/python
-
 import random
+from ansible.module_utils.basic import AnsibleModule
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -40,9 +39,6 @@ fact:
     type: str
     sample: Jane Doe is a smart cookie.
 '''
-
-from ansible.module_utils.basic import AnsibleModule
-
 
 FACTS = [
     "{name} is looking great today!",

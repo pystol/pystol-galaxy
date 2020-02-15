@@ -18,37 +18,20 @@
 #
 - name: Action execution block
   block:
-      - name: Gather some real facts from the role
-        pystol.actions.real_facts:
-            name: This is a test
+      - name: Run the Pystol module to kill some random pods
+        pystol.actions.kill_pods:
+            namespace: default
+            distribution: poisson
+            amount: 500
         register: testout
-      - debug:
-            msg: "{{ testout }}"
-      - name: Get a list of all pods from any namespace
-        k8s_info:
-            kind: Pod
-        register: pingtest_pod_list
-      - debug: var=pingtest_pod_list
-      - name: Get the Internal IP of the first node
-        shell: |
-            kubectl get nodes -o \
-            jsonpath='
-                {
-                $.items[*].status.addresses[?(@.type=="InternalIP")].address
-                }' \
-            | head -1
-        register: pingtest_node_ip
-      - debug: var=pingtest_node_ip.stdout
-      - name: Ping the internal IP of a node from the pod
-        command: "ping -c 2 {{ pingtest_node_ip.stdout }}"
-        register: ping_result
+      - debug: msg="{{ testout }}"
         # Here we make the task fail
         # depending on the actin execution
         failed_when: >
-            (ping_result.stderr | length > 0) or
-            (ping_result.rc == 10)
-      - debug: msg="{{ ping_result.stderr }}"
-      - debug: msg="{{ ping_result.stdout }}"
+            (testout.stderr | length > 0) or
+            (testout.rc == 10)
+      - debug: msg="{{ testout.stderr }}"
+      - debug: msg="{{ testout.stdout }}"
 
       #
       # Begining of mandatory lines

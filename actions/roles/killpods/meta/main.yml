@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Carlos Camacho
-  description: A simple pingtest action for Pystol.
+  description: A simple killpods action for Pystol.
   company: Pystol
   license: Apache-2.0
   min_ansible_version: 1.2
@@ -9,5 +9,5 @@ galaxy_info:
     - name: Fedora
       versions:
         - 25
-  galaxy_tags: ["pystol", "pingtest"]
+  galaxy_tags: ["pystol", "killpods"]
 dependencies: []

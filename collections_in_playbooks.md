@@ -1,4 +1,4 @@
-################################################################################
+```
 - name: Run a module from inside a collection
   hosts: localhost
   tasks:
@@ -8,8 +8,8 @@
       register: testout
     - debug:
         msg: "{{ testout }}"
-
-################################################################################
+```
+```
 - name: Run a module from inside a collection using the collections keyword
   hosts: localhost
   collections:
@@ -21,9 +21,10 @@
       register: testout
     - debug:
         msg: "{{ testout }}"
-
-################################################################################
+```
+```
 - name: Run a role from inside of a collection
   hosts: localhost
   roles:
     - "pystol.actions.pingtest"
+```
