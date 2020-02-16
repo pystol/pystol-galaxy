@@ -106,6 +106,7 @@ def run_module():
 
     out = ""
     err = ""
+    rc = 0
 
     namespace = module.params['namespace']
     amount = module.params['amount']
@@ -114,6 +115,7 @@ def run_module():
         changed=True,
         stdout=out,
         stderr=err,
+        rc=rc,
     )
 
     result['fact'] = random.choice(FACTS).format(
