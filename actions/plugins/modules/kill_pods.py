@@ -133,6 +133,10 @@ def run_module():
 
         # From the Running pods I randomly choose those to die
         # based on the histogram length
+        print("-------")
+        print("Pod list length: " + str(len(pod_list)))
+        print("Number of pods to get: " + str(int(experiment)))
+        print("-------")
         to_be_killed = random.sample(pod_list, int(experiment))
 
         for pod in to_be_killed:
