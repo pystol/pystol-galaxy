@@ -110,6 +110,12 @@ def run_module():
     namespace = module.params['namespace']
     amount = module.params['amount']
 
+    result = dict(
+        changed=True,
+        stdout=out,
+        stderr=err,
+    )
+
     result['fact'] = random.choice(FACTS).format(
         name=module.params['namespace']
     )
@@ -152,13 +158,6 @@ def run_module():
         global_kill.append((datetime.datetime.now(), int(experiment)))
         print(datetime.datetime.now())
     print("Ending histogram execution")
-
-    result = dict(
-        changed=True,
-        stdout=out,
-        stderr=err,
-    )
-
 
     if module.check_mode:
         return result
