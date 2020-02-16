@@ -25,14 +25,15 @@
         distribution: poisson
         amount: 20
       register: testout
+    - debug: msg="{{ testout.stderr }}"
+    - debug: msg="{{ testout.stdout }}"
     - debug: msg="{{ testout }}"
       # Here we make the task fail
-      # depending on the actin execution
+      # depending on the action execution
+      # ALL METHODS SHOULD RETURN STDERR AND STDOUT
       failed_when: >
         (testout.stderr | length > 0) or
         (testout.rc == 10)
-    - debug: msg="{{ testout.stderr }}"
-    - debug: msg="{{ testout.stdout }}"
     #
     # Begining of mandatory lines
     #

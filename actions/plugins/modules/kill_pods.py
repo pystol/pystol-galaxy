@@ -101,10 +101,8 @@ def run_module():
         supports_check_mode=True
     )
 
-    result = dict(
-        changed=False,
-        fact=''
-    )
+    out = ""
+    err = ""
 
     namespace = module.params['namespace']
     amount = module.params['amount']
@@ -151,6 +149,13 @@ def run_module():
         global_kill.append((datetime.datetime.now(), int(experiment)))
         print(datetime.datetime.now())
     print("Ending histogram execution")
+
+    result = dict(
+        changed=True,
+        stdout=out,
+        stderr=err,
+    )
+
 
     if module.check_mode:
         return result
