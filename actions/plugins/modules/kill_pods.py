@@ -137,7 +137,12 @@ def run_module():
         print("Pod list length: " + str(len(pod_list)))
         print("Number of pods to get: " + str(int(experiment)))
         print("-------")
-        to_be_killed = random.sample(pod_list, int(experiment))
+        # In the case of the experiment being longer than the pod list,
+        # then the maximum will be the lenght of the pod list
+        if (int(experiment) > len(pod_list)):
+            to_be_killed = random.sample(pod_list, len(pod_list))
+        else:
+            to_be_killed = random.sample(pod_list, int(experiment))
 
         for pod in to_be_killed:
             delete_pod(pod.metadata.name,
