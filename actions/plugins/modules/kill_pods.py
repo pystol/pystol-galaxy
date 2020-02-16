@@ -1,3 +1,4 @@
+import matplotlib
 import random
 from ansible.module_utils.basic import AnsibleModule
 from scipy.stats import poisson
@@ -56,6 +57,8 @@ FACTS = [
     "{name} is a smart cookie.",
     "I’d choose {name}'s company over pizza anytime."
 ]
+
+matplotlib.use('Agg')
 
 global_available = []
 global_unavailable = []
