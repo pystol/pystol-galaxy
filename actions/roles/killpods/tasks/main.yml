@@ -23,7 +23,7 @@
       pystol.actions.kill_pods:
         namespace: default
         distribution: poisson
-        amount: 500
+        amount: 5
       register: testout
     - debug: msg="{{ testout }}"
       # Here we make the task fail
