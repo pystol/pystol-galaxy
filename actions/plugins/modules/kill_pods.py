@@ -1,4 +1,5 @@
 import matplotlib
+matplotlib.use('Agg')
 import random
 from ansible.module_utils.basic import AnsibleModule
 from scipy.stats import poisson
@@ -58,7 +59,6 @@ FACTS = [
     "I’d choose {name}'s company over pizza anytime."
 ]
 
-matplotlib.use('Agg')
 
 global_available = []
 global_unavailable = []
