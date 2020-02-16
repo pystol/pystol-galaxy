@@ -107,6 +107,7 @@ def run_module():
     )
 
     namespace = module.params['namespace']
+    amount = module.params['amount']
 
     result['fact'] = random.choice(FACTS).format(
         name=module.params['namespace']
