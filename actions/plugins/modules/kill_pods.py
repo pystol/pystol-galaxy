@@ -113,7 +113,7 @@ def run_module():
     )
 
     # random numbers from poisson distribution
-    n = 500
+    n = amount
     a = 0
     data_poisson = poisson.rvs(mu=10, size=n, loc=a)
     counts, bins, bars = plt.hist(data_poisson)

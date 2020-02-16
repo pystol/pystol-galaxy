@@ -8,6 +8,10 @@
   block:
     - name: Apply the result CR
       shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"RUN\"}]'"
+# Galaxy is not responsible for installing modules requirements
+#- name: Install playbook requirements
+#  pip:
+#    requirements: /requirements.txt
 #
 # End of mandatory lines
 #
