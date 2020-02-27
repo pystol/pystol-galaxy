@@ -1,5 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
+import os
 import random
 from ansible.module_utils.basic import AnsibleModule
 from scipy.stats import poisson
