@@ -118,6 +118,7 @@ def load_kubernetes_config():
                    "Or run Pystol from within the cluster to make use of "
                    "load_incluster_config.\n"
                    "Error: ")
+        print(message)
         raise e
 
 
