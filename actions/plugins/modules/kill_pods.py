@@ -9,6 +9,8 @@ from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 import datetime
 
+from ansible_collections.actions.plugins.module_utils import k8s_common
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
@@ -92,36 +94,6 @@ def get_pods(namespace=''):
         print("CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
 
 
-def load_kubernetes_config():
-    """
-    Load the initial config details.
-    We load the config depending where we execute the code from
-    """
-    try:
-        if 'KUBERNETES_PORT' in os.environ:
-            # We set up the client from within a k8s pod
-            config.load_incluster_config()
-        elif 'KUBECONFIG' in os.environ:
-            config.load_kube_config(os.getenv('KUBECONFIG'))
-        else:
-            config.load_kube_config()
-    except Exception as e:
-        message = ("---\n"
-                   "The Python Kubernetes client could not be configured "
-                   "at this time.\n"
-                   "You need a working Kubernetes deployment to make "
-                   "Pystol work.\n"
-                   "Check the following:\n"
-                   "Use the env var KUBECONFIG with the path to your K8s "
-                   "config file like:\n"
-                   "    export KUBECONFIG=~/.kube/config\n"
-                   "Or run Pystol from within the cluster to make use of "
-                   "load_incluster_config.\n"
-                   "Error: ")
-        print(message)
-        raise e
-
-
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
@@ -159,7 +131,7 @@ def run_module():
     data_poisson = poisson.rvs(mu=10, size=n, loc=a)
     counts, bins, bars = plt.hist(data_poisson)
     plt.close()
-    load_kubernetes_config()
+    k8s_common.load_kubernetes_config()
     configuration = client.Configuration()
     configuration.assert_hostname = False
     client.api_client.ApiClient(configuration=configuration)
