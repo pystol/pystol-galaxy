@@ -1,6 +1,7 @@
 import os
 from kubernetes import config
 
+
 def load_kubernetes_config():
     """
     Load the initial config details.

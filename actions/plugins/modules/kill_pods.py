@@ -1,15 +1,15 @@
 import matplotlib
 matplotlib.use('Agg')
-import os
 import random
 from ansible.module_utils.basic import AnsibleModule
 from scipy.stats import poisson
 import matplotlib.pyplot as plt
-from kubernetes import client, config
+from kubernetes import client
 from kubernetes.client.rest import ApiException
 import datetime
 
-from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
+from ansible_collections.pystol.actions.plugins.module_utils.k8s_common
+    import load_kubernetes_config
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
