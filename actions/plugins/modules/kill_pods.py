@@ -9,7 +9,7 @@ from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 import datetime
 
-from ansible_collections.actions.plugins.module_utils import k8s_common
+from ansible_collections.pystol.actions.plugins.module_utils import k8s_common
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
