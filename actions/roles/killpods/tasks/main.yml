@@ -22,9 +22,9 @@
   block:
     - name: Run the Pystol module to kill some random pods
       pystol.actions.kill_pods:
-        namespace: "{{ pystol_killpods_namespace | default("default") }}"
-        distribution: "{{ pystol_killpods_distribution | default("poisson") }}"
-        amount: "{{ pystol_killpods_amount | default(10) }}"
+        namespace: "{{ pystol_killpods_namespace }}"
+        distribution: "{{ pystol_killpods_distribution }}"
+        amount: "{{ pystol_killpods_amount }}"
       register: testout
     - debug: msg="{{ testout.stderr }}"
     - debug: msg="{{ testout.stdout }}"

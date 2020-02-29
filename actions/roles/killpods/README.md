@@ -2,6 +2,11 @@
 
 Run with:
 
+This action needs 3 required parameters.
+
+* pystol_killpods_namespace: The namespace for killig the pods
+* pystol_killpods_distribution: The probabilistic distribution to create the histogram
+* pystol_killpods_amount: The total amount of pods to kill
 
 ```
 pystol run --namespace pystol \
