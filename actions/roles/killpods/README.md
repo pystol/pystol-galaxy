@@ -10,8 +10,16 @@ pystol run --namespace pystol \
            --extra-vars '{"pystol_killpods_namespace":"default","pystol_killpods_distribution":"poisson","pystol_killpods_amount":"10"}'
 
 ```
- OR
+
+Or locally with:
 
 ```
-ansible -m include_role -a 'name=killpods' -e 'ansible_python_interpreter=/usr/bin/python3' localhost -vvvv
+ansible -m include_role \
+    -a 'name=pystol.actions.killpods' \
+    -e '{"pystol_killpods_namespace": "default", \
+         "pystol_killpods_distribution": "poisson", \
+         "pystol_killpods_amount": "1", \
+         "ansible_python_interpreter": "/usr/bin/python3", \
+         "pystol_action_id": "pystol-action-pystol-actions-killpods-tlxtb"}' \
+    localhost -vv
 ```

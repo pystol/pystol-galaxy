@@ -24,7 +24,7 @@
       pystol.actions.kill_pods:
         namespace: "{{ pystol_killpods_namespace | default("default") }}"
         distribution: "{{ pystol_killpods_distribution | default("poisson") }}"
-        amount: "{{ pystol_killpods_amoun | default("20") }}"
+        amount: "{{ pystol_killpods_amount | default("10") }}"
       register: testout
     - debug: msg="{{ testout.stderr }}"
     - debug: msg="{{ testout.stdout }}"
