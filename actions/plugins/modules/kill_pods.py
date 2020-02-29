@@ -96,9 +96,9 @@ def get_pods(namespace=''):
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        namespace=dict(type='str', default='default'),
-        distribution=dict(type='str', default='poisson'),
-        amount=dict(type='int', default=10),
+        namespace=dict(type='str', required=True),
+        distribution=dict(type='str', required=True),
+        amount=dict(type='int', required=True),
     )
 
     module = AnsibleModule(
