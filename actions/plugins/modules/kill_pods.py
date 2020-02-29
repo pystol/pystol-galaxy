@@ -9,7 +9,7 @@ from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 import datetime
 
-from ansible_collections.pystol.actions.plugins.module_utils import k8s_common
+from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -131,7 +131,7 @@ def run_module():
     data_poisson = poisson.rvs(mu=10, size=n, loc=a)
     counts, bins, bars = plt.hist(data_poisson)
     plt.close()
-    k8s_common.load_kubernetes_config()
+    load_kubernetes_config()
     configuration = client.Configuration()
     configuration.assert_hostname = False
     client.api_client.ApiClient(configuration=configuration)
