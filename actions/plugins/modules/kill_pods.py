@@ -8,8 +8,7 @@ from kubernetes import client
 from kubernetes.client.rest import ApiException
 import datetime
 
-from ansible_collections.pystol.actions.plugins.module_utils.k8s_common
-    import load_kubernetes_config
+from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
