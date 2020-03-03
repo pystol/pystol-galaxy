@@ -1,0 +1,57 @@
+---
+#
+# Begining of mandatory lines
+#
+- debug:
+    msg: "Ansible execution of action: {{ pystol_action_id }}"
+- name: Update the CR with the start of the action
+  block:
+    - name: Apply the result CR
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"RUN\"}]'"
+#
+# End of mandatory lines
+#
+- name: Action execution block
+  block:
+    - name: Run the Pystol module to drain some nodes
+      pystol.actions.drain_nodes:
+        amount: "{{ pystol_drainnodes_amount }}"
+        names: "{{ pystol_drainnodes_names }}"
+      register: testout
+    - debug: msg="{{ testout.stderr }}"
+    - debug: msg="{{ testout.stdout }}"
+    - debug: msg="{{ testout }}"
+      # Here we make the task fail
+      # depending on the action execution
+      # ALL METHODS SHOULD RETURN STDERR AND STDOUT
+      failed_when: >
+        (testout.stderr | length > 0) or
+        (testout.rc == 10)
+    #
+    # Begining of mandatory lines
+    #
+    - name: Apply the result CR
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FPA\"}]'"
+  rescue:
+    - name: Apply the  result CR
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FFA\"}]'"
+  always:
+    #
+    # In the set_fact you need to calculate
+    # whatever the pystol action should output
+    # as a result
+    #
+    - name: Set Result facts
+      set_fact:
+        pystol_action_stdout: "-- OUT"
+        pystol_action_stderr: "-- ERR"
+    # TODO: Make a logger module to store this data
+    - name: Update the CR with the end of the action
+      block:
+        - name: Apply the result CR for the stdout
+          shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stdout\", \"value\":\" {{ pystol_action_stdout }} \"}]'"
+        - name: Apply the result CR for the stderr
+          shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stderr\", \"value\":\" {{ pystol_action_stderr }} \"}]'"
+#
+# End of mandatory lines
+#
