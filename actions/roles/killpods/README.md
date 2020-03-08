@@ -33,3 +33,28 @@ echo '  source: https://galaxy.ansible.com' >> req.yml; \
 ansible-galaxy collection install --force -r req.yml; \
 ansible -m include_role -a 'name=pystol.actions.killpods' -e '{'pystol_killpods_namespace': 'default', 'pystol_killpods_distribution': 'poisson', 'pystol_killpods_amount': '1', 'ansible_python_interpreter': '/usr/bin/python3', 'pystol_action_id': 'pystol-action-pystol-actions-killpods-nthkp'}' localhost -vv; exit 0
 ```
+
+# Local development environment debugging.
+
+```
+# In another session execute:
+journalctl -f
+
+# Then execute:
+cd ~/pystol-galaxy/actions/
+mkdir -p releases
+ansible-galaxy collection build -v --force --output-path releases/
+cd releases
+LATEST=$(ls pystol-actions*.tar.gz | grep -v latest | sort -V | tail -n1)
+ln -sf $LATEST pystol-actions-latest.tar.gz
+ansible-galaxy collection install --force pystol-actions-latest.tar.gz
+
+
+cd ~/pystol-galaxy/actions/roles/killpods/tasks/
+ansible-playbook debug_role.yml \
+        -e '{'pystol_killpods_namespace': 'default',
+             'pystol_killpods_distribution': 'poisson',
+             'pystol_killpods_amount': '1',
+             'ansible_python_interpreter': '/usr/bin/python3'}' \
+        -vvvvv
+```

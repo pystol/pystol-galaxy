@@ -3,6 +3,7 @@ matplotlib.use('Agg')
 import random
 from ansible.module_utils.basic import AnsibleModule
 from scipy.stats import poisson
+import sys
 import matplotlib.pyplot as plt
 from kubernetes import client
 from kubernetes.client.rest import ApiException
@@ -109,6 +110,8 @@ def run_module():
     out = ""
     err = ""
     rc = 0
+
+    module.log(msg='test!!!!!!!!!!!!!!!!!')
 
     namespace = module.params['namespace']
     amount = module.params['amount']
