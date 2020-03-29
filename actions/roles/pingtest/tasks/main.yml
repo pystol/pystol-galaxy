@@ -63,8 +63,8 @@
     #
     - name: Set Result facts
       set_fact:
-        pystol_action_stdout: "{{ ping_result.stdout | to_nice_json(indent=2) }}"
-        pystol_action_stderr: "{{ ping_result.stderr | to_nice_json(indent=2) }}"
+        pystol_action_stdout: "{{ ping_result.stdout | quote }}"
+        pystol_action_stderr: "{{ ping_result.stderr | quote }}"
     # TODO: Make a logger module to store this data
     - name: Update the CR with the end of the action
       block:
