@@ -4,10 +4,16 @@
 #
 - debug:
     msg: "Ansible execution of action: {{ pystol_action_id }}"
+# - name: Start the action
+#   include_role:
+#     name: pystol.actions.core
+#     tasks_from: start_action
 - name: Update the CR with the start of the action
   block:
-    - name: Apply the result CR
-      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"RUN\"}]'"
+    - name: Workflow - Executing action
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/workflow_state\", \"value\":\"PystolOperatorExecutingAction\"}]'"
+    - name: Action - Running
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"PystolActionRunning\"}]'"
 #
 # End of mandatory lines
 #
@@ -44,11 +50,11 @@
     #
     # Begining of mandatory lines
     #
-    - name: Apply the result CR
-      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FPA\"}]'"
+    - name: Action - Ended OK
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"PystolActionEndedSuccessfully\"}]'"
   rescue:
-    - name: Apply the  result CR
-      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FFA\"}]'"
+    - name: Action - Ended with errors
+      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"PystolActionEndedFail\"}]'"
   always:
     #
     # In the set_fact you need to calculate
@@ -57,15 +63,17 @@
     #
     - name: Set Result facts
       set_fact:
-        pystol_action_stdout: "-- OUT"
-        pystol_action_stderr: "-- ERR"
+        pystol_action_stdout: "{{ ping_result.stdout }}"
+        pystol_action_stderr: "{{ ping_result.stderr }}"
     # TODO: Make a logger module to store this data
     - name: Update the CR with the end of the action
       block:
-        - name: Apply the result CR for the stdout
+        - name: Update action stdout
           shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stdout\", \"value\":\" {{ pystol_action_stdout }} \"}]'"
-        - name: Apply the result CR for the stderr
+        - name: Update action stderr
           shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stderr\", \"value\":\" {{ pystol_action_stderr }} \"}]'"
+        - name: Workflow - Ended
+          shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/workflow_state\", \"value\":\"PystolOperatorEnded\"}]'"
 #
 # End of mandatory lines
 #
