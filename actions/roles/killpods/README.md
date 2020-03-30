@@ -75,11 +75,13 @@ ansible-galaxy collection install --force pystol-actions-latest.tar.gz
 # Go to the playbook folder
 cd ~/pystol-galaxy/actions/roles/killpods/tasks/
 # Execute the playbook
-ansible-playbook debug_role.yml \
+ansible -m include_role \
+        -a 'name=pystol.actions.killpods' \
         -e '{'pystol_killpods_namespace': 'default',
              'pystol_killpods_distribution': 'poisson',
              'pystol_killpods_amount': '1',
              'ansible_python_interpreter': '/usr/bin/python3'}' \
+        localhost \
         -vvvvv
 ```
 
