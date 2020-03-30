@@ -107,9 +107,11 @@ def run_module():
         supports_check_mode=True
     )
 
-    out = ""
-    err = ""
     rc = 0
+    stderr = "err"
+    stderr_lines = ["errl1", "errl2"]
+    stdout ="out"
+    stdout_lines = ["outl1", "outl1"]
 
     module.log(msg='test!!!!!!!!!!!!!!!!!')
 
@@ -118,8 +120,10 @@ def run_module():
 
     result = dict(
         changed=True,
-        stdout=out,
-        stderr=err,
+        stdout=stdout,
+        stdout_lines=stdout_lines,
+        stderr=stderr,
+        stderr_lines=stderr_lines,
         rc=rc,
     )
 

@@ -79,8 +79,8 @@
     #
     - name: Set Result facts
       set_fact:
-        pystol_action_stdout: "{{ ''.join(testout.stdout) | replace('\\n', '') | replace('\\t', '') }}"
-        pystol_action_stderr: "{{ ''.join(testout.stderr) | replace('\\n', '') | replace('\\t', '') }}"
+        pystol_action_stdout: "{{ ''.join(testout.stdout_lines) | replace('\\n', '') | replace('\\t', '') }}"
+        pystol_action_stderr: "{{ ''.join(testout.stderr_lines) | replace('\\n', '') | replace('\\t', '') }}"
     #
     # Begin: Mandatory
     #
