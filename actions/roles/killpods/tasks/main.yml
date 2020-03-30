@@ -22,6 +22,13 @@
 #
 - name: Action execution block
   block:
+    # Galaxy is not responsible for installing modules requirements
+    - name: Install playbook requirements
+      pip:
+        name:
+          - scipy
+          - matplotlib
+        extra_args: --user
     - name: Run the Pystol module to kill some random pods
       pystol.actions.kill_pods:
         namespace: "{{ pystol_killpods_namespace }}"
