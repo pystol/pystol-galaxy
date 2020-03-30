@@ -42,8 +42,7 @@
       # depending on the action execution
       # ALL METHODS SHOULD RETURN STDERR AND STDOUT
       failed_when: >
-        (testout.stderr | length > 0) or
-        (testout.rc == 10)
+        (testout.rc != 0)
     #
     # Begin: Mandatory
     #
