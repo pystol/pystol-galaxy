@@ -1,22 +1,24 @@
 ---
 #
-# Begining of mandatory lines
+# Begin: Mandatory
 #
-- debug:
-    msg: "Ansible execution of action: {{ pystol_action_id }}"
-- name: Update the CR with the start of the action
+- name: Update the CR as starting
   block:
-    - name: Apply the result CR
-      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"RUN\"}]'"
-    # Galaxy is not responsible for installing modules requirements
-    - name: Install playbook requirements
-      pip:
-        name:
-          - scipy
-          - matplotlib
-        extra_args: --user
+    - debug:
+        msg: "Ansible execution of action: {{ pystol_action_id }}"
+    - name: Change the CR operator state
+      pystol.actions.patch_cr:
+        name: "{{ pystol_action_id }}"
+        key: "workflow_state"
+        value: "PystolOperatorExecutingAction"
+    - name: Change the CR action state
+      pystol.actions.patch_cr:
+        name: "{{ pystol_action_id }}"
+        key: "action_state"
+        value: "PystolActionRunning"
+  when: pystol_action_id is defined
 #
-# End of mandatory lines
+# End: Mandatory
 #
 - name: Action execution block
   block:
@@ -36,13 +38,39 @@
         (testout.stderr | length > 0) or
         (testout.rc == 10)
     #
-    # Begining of mandatory lines
+    # Begin: Mandatory
     #
-    - name: Apply the result CR
-      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FPA\"}]'"
+    - name: Update the CR as ended OK
+      block:
+        - debug:
+
+            msg: "Action ended OK: {{ pystol_action_id }}"
+        - name: Change the CR action state
+          pystol.actions.patch_cr:
+            name: "{{ pystol_action_id }}"
+            key: "action_state"
+            value: "PystolActionEndedSuccessfully"
+      when: pystol_action_id is defined
+    #
+    # End: Mandatory
+    #
   rescue:
-    - name: Apply the  result CR
-      shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_state\", \"value\":\"FFA\"}]'"
+    #
+    # Begin: Mandatory
+    #
+    - name: Update the CR as ended with errors
+      block:
+        - debug:
+            msg: "Action ended with errors: {{ pystol_action_id }}"
+        - name: Change the CR action state
+          pystol.actions.patch_cr:
+            name: "{{ pystol_action_id }}"
+            key: "action_state"
+            value: "PystolActionEndedFail"
+      when: pystol_action_id is defined
+    #
+    # End: Mandatory
+    #
   always:
     #
     # In the set_fact you need to calculate
@@ -51,15 +79,31 @@
     #
     - name: Set Result facts
       set_fact:
-        pystol_action_stdout: "-- OUT"
-        pystol_action_stderr: "-- ERR"
-    # TODO: Make a logger module to store this data
-    - name: Update the CR with the end of the action
+        pystol_action_stdout: "{{ ''.join(testout.stdout_lines) | replace('\\n', '') | replace('\\t', '') }}"
+        pystol_action_stderr: "{{ ''.join(testout.stderr_lines) | replace('\\n', '') | replace('\\t', '') }}"
+    #
+    # Begin: Mandatory
+    #
+    - name: Update the CR as workflow ended
       block:
-        - name: Apply the result CR for the stdout
-          shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stdout\", \"value\":\" {{ pystol_action_stdout }} \"}]'"
-        - name: Apply the result CR for the stderr
-          shell: "kubectl patch pystolactions {{ pystol_action_id }} --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/action_stderr\", \"value\":\" {{ pystol_action_stderr }} \"}]'"
-#
-# End of mandatory lines
-#
+        - debug:
+            msg: "Ansible execution of action: {{ pystol_action_id }}"
+        - name: Change the CR action stdout
+          pystol.actions.patch_cr:
+            name: "{{ pystol_action_id }}"
+            key: "action_stdout"
+            value: "{{ pystol_action_stdout }}"
+        - name: Change the CR action stderr
+          pystol.actions.patch_cr:
+            name: "{{ pystol_action_id }}"
+            key: "action_stderr"
+            value: "{{ pystol_action_stderr }}"
+        - name: Change the CR operator state
+          pystol.actions.patch_cr:
+            name: "{{ pystol_action_id }}"
+            key: "workflow_state"
+            value: "PystolOperatorEnded"
+      when: pystol_action_id is defined
+    #
+    # End: Mandatory
+    #
