@@ -1,0 +1,26 @@
+---
+- name: Update the status of a custom resource
+  block:
+    - debug:
+        msg: "Ansible execution of action: {{ pystol_action_id }}"
+    - name: Change the CR operator state
+      pystol.actions.patch_cr:
+        name: "{{ pystol_action_id }}"
+        key: "workflow_state"
+        value: "{{ pystol_log_workflow_state }}"
+    - name: Change the CR action state
+      pystol.actions.patch_cr:
+        name: "{{ pystol_action_id }}"
+        key: "action_state"
+        value: "{{ pystol_log_action_state }}"
+    - name: Change the CR action stdout
+      pystol.actions.patch_cr:
+        name: "{{ pystol_action_id }}"
+        key: "action_stdout"
+        value: "{{ pystol_log_action_stdout }}"
+    - name: Change the CR action stderr
+      pystol.actions.patch_cr:
+        name: "{{ pystol_action_id }}"
+        key: "action_stderr"
+        value: "{{ pystol_log_action_stderr }}"
+  when: pystol_action_id is defined
