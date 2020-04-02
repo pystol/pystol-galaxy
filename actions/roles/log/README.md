@@ -1,7 +1,10 @@
 # Log role
 
-Used to foce update a custom resource,
+Used to force an update in a custom resource,
 for example in the case of a failure.
+
+This is the role called when the user triggers an
+action that do not exist to mark the action as failed.
 
 ```
 ansible -m include_role \

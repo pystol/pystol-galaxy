@@ -1,4 +1,9 @@
-# KillPods role
+# Pingtest role
+
+This is	a role to execute the action
+that runs a pingtest, this action
+is used as a test to check that
+the workflow runs correctly.
 
 Run with:
 

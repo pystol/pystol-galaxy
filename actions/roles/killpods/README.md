@@ -1,5 +1,8 @@
 # KillPods role
 
+This is	a role to execute the action to	kill randomly a
+set of pods.
+
 Run with:
 
 This action needs 3 required parameters.

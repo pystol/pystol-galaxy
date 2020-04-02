@@ -1,5 +1,7 @@
 # DrainNodes role
 
+This is a role to execute the action to drain the nodes.
+
 Run with:
 
 This action needs 3 required parameters.
