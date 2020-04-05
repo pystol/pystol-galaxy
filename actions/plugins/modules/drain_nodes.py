@@ -83,8 +83,9 @@ def cordon_node(name):
         api_response = core_v1.patch_node(
             name=name,
             body=body)
-        pprint(api_response)
+        print(api_response)
     except ApiException as e:
+        module.log(msg=e)
         print("CoreV1Api->cordon_node: %s\n" % e)
 
 
@@ -99,16 +100,23 @@ def uncordon_node(name):
         api_response = core_v1.patch_node(
             name=name,
             body=body)
-        pprint(api_response)
+        print(api_response)
     except ApiException as e:
+        module.log(msg=e)
         print("CoreV1Api->uncordon_node: %s\n" % e)
 
-def drain_node(node_name):
+def drain_node(node_name, duration):
+    module.log(msg="Draining node")
+    cordon_node(node_name)
+    # uncordon_node(node_name)
+
+    # We get all the pods from the node
+    core_v1 = client.CoreV1Api()
     ret = v1.list_pod_for_all_namespaces(
         field_selector="spec.nodeName={}".format(node_name))
 
 
-    # following the drain command from kubectl as best as we can
+    # Now we will try to remove as much pods as we can
     eviction_candidates = []
     for pod in ret.items:
         name = pod.metadata.name
@@ -203,7 +211,6 @@ def drain_node(node_name):
             break
 
         time.sleep(10)
-
     return True
 
 
@@ -269,7 +276,7 @@ def run_module():
         module.log(msg='Nodes list is empty')
     for node in nodes_list:
         module.log(msg='Nodes to drain:' + json.dumps(nodes_list))
-        # drain_nodes(node, duration):
+        drain_node(node, duration):
 
     if module.check_mode:
         return result
