@@ -2,7 +2,7 @@ import random
 from ansible.module_utils.basic import AnsibleModule
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-
+import time
 from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
 
 ANSIBLE_METADATA = {
@@ -23,10 +23,12 @@ description:
     - "A module that drain nodes"
 
 options:
-    names:
+    nodes:
         default: default
     amount:
         default: 10
+    duration:
+        default: 60
 
 author:
     - Carlos Camacho
@@ -36,8 +38,9 @@ EXAMPLES = '''
 # Pass in a message
 - name: Test with a message
   drain_nodes:
-    names: ["minikube", "worker1"]
+    nodes: ["minikube", "worker1"]
     amount: 3
+    duration: 60
 '''
 
 RETURN = '''
@@ -102,8 +105,6 @@ def drain_node(node_name):
     ret = v1.list_pod_for_all_namespaces(
         field_selector="spec.nodeName={}".format(node_name))
 
-    if not ret.items:
-        continue
 
     # following the drain command from kubectl as best as we can
     eviction_candidates = []
@@ -221,8 +222,9 @@ def get_pods(namespace=''):
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        names=dict(type='str', required=True),
+        nodes=dict(type='str', required=True),
         amount=dict(type='int', required=True),
+        duration=dict(type='int', required=True),
     )
 
     module = AnsibleModule(
@@ -230,23 +232,37 @@ def run_module():
         supports_check_mode=True
     )
 
-    out = ""
-    err = ""
     rc = 0
+    stderr = "err"
+    stderr_lines = ["errl1", "errl2"]
+    stdout ="out"
+    stdout_lines = ["outl1", "outl1"]
 
-    namespace = module.params['namespace']
+    module.log(msg='test!!!!!!!!!!!!!!!!!')
+
+    nodes = module.params['nodes']
     amount = module.params['amount']
+    duration = module.params['duration']
 
     result = dict(
         changed=True,
-        stdout=out,
-        stderr=err,
+        stdout=stdout,
+        stdout_lines=stdout_lines,
+        stderr=stderr,
+        stderr_lines=stderr_lines,
         rc=rc,
     )
 
-    result['fact'] = random.choice(FACTS).format(
-        name=module.params['namespace']
-    )
+    # Load the Kubernetes configuration
+    load_kubernetes_config()
+    configuration = client.Configuration()
+    configuration.assert_hostname = False
+    client.api_client.ApiClient(configuration=configuration)
+
+    if len(names) == 0:
+        nodes = get_random_nodes(amount)
+    for node in nodes:
+        drain_nodes(node, duration):
 
     if module.check_mode:
         return result

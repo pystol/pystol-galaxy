@@ -39,8 +39,8 @@ cd ~/pystol-galaxy/actions/roles/drainnodes/tasks/
 ansible -m include_role \
         -a 'name=pystol.actions.drainnodes' \
         -e '{'pystol_drainnodes_amount': 1,
-             'pystol_drainnodes_names': ["node_1","node_2"],
-             'pystol_drainnodes_duration: 60,
+             'pystol_drainnodes_nodes': ["node_1","node_2"],
+             'pystol_drainnodes_duration': 60,
              'ansible_python_interpreter': '/usr/bin/python3'}' \
         localhost \
         -vvvvv

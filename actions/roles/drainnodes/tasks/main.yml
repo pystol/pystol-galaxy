@@ -25,7 +25,8 @@
     - name: Run the Pystol module to drain some nodes
       pystol.actions.drain_nodes:
         amount: "{{ pystol_drainnodes_amount }}"
-        names: "{{ pystol_drainnodes_names }}"
+        nodes: "{{ pystol_drainnodes_nodes }}"
+        duration: "{{ pystol_drainnodes_duration }}"
       register: testout
     - debug: msg="{{ testout.stderr }}"
     - debug: msg="{{ testout.stdout }}"
@@ -41,7 +42,6 @@
     - name: Update the CR as ended OK
       block:
         - debug:
-
             msg: "Action ended OK: {{ pystol_action_id }}"
         - name: Change the CR action state
           pystol.actions.patch_cr:

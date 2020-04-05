@@ -1,5 +1,4 @@
 from ansible.module_utils.basic import AnsibleModule
-import sys
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 

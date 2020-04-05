@@ -3,7 +3,6 @@ matplotlib.use('Agg')
 import random
 from ansible.module_utils.basic import AnsibleModule
 from scipy.stats import poisson
-import sys
 import matplotlib.pyplot as plt
 from kubernetes import client
 from kubernetes.client.rest import ApiException
@@ -110,7 +109,7 @@ def run_module():
     rc = 0
     stderr = "err"
     stderr_lines = ["errl1", "errl2"]
-    stdout ="out"
+    stdout = "out"
     stdout_lines = ["outl1", "outl1"]
 
     module.log(msg='test!!!!!!!!!!!!!!!!!')
