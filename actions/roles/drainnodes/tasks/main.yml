@@ -24,9 +24,9 @@
   block:
     - name: Run the Pystol module to drain some nodes
       pystol.actions.drain_nodes:
-        amount: "{{ pystol_drainnodes_amount }}"
-        nodes: "{{ pystol_drainnodes_nodes }}"
-        duration: "{{ pystol_drainnodes_duration }}"
+        amount: "{{ pystol_drainnodes_amount | default(0) }}"
+        nodes: "{{ pystol_drainnodes_nodes | default('{}') }}"
+        duration: "{{ pystol_drainnodes_duration | default(60)}}"
       register: testout
     - debug: msg="{{ testout.stderr }}"
     - debug: msg="{{ testout.stdout }}"

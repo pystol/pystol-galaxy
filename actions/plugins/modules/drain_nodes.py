@@ -2,7 +2,9 @@ import random
 from ansible.module_utils.basic import AnsibleModule
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-import time
+
+import json
+
 from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
 
 ANSIBLE_METADATA = {
@@ -222,7 +224,7 @@ def get_pods(namespace=''):
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        nodes=dict(type='str', required=True),
+        nodes=dict(type='json', required=True),
         amount=dict(type='int', required=True),
         duration=dict(type='int', required=True),
     )
@@ -259,10 +261,15 @@ def run_module():
     configuration.assert_hostname = False
     client.api_client.ApiClient(configuration=configuration)
 
-    if len(names) == 0:
-        nodes = get_random_nodes(amount)
-    for node in nodes:
-        drain_nodes(node, duration):
+    nodes_list = json.loads(nodes)
+    module.log(msg='Nodes len:' + str(len(nodes_list)))
+
+    if len(nodes_list) == 0:
+        # nodes_list = get_random_nodes(amount)
+        module.log(msg='Nodes list is empty')
+    for node in nodes_list:
+        module.log(msg='Nodes to drain:' + json.dumps(nodes_list))
+        # drain_nodes(node, duration):
 
     if module.check_mode:
         return result

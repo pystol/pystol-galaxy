@@ -33,8 +33,9 @@ LATEST=$(ls pystol-actions*.tar.gz | grep -v latest | sort -V | tail -n1)
 ln -sf $LATEST pystol-actions-latest.tar.gz
 ansible-galaxy collection install --force pystol-actions-latest.tar.gz
 
-# Go to the playbook folder
-cd ~/pystol-galaxy/actions/roles/drainnodes/tasks/
+# Go to the home folder
+cd ~/pystol-galaxy/actions/
+
 # Execute the playbook
 ansible -m include_role \
         -a 'name=pystol.actions.drainnodes' \
