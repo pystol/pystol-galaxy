@@ -3,6 +3,7 @@ from ansible.module_utils.basic import AnsibleModule
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 
+import time
 import json
 
 from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
@@ -105,16 +106,13 @@ def uncordon_node(name):
         module.log(msg=e)
         print("CoreV1Api->uncordon_node: %s\n" % e)
 
-def drain_node(node_name, duration):
+def drain_node(node_name):
     module.log(msg="Draining node")
-    cordon_node(node_name)
-    # uncordon_node(node_name)
 
     # We get all the pods from the node
     core_v1 = client.CoreV1Api()
     ret = v1.list_pod_for_all_namespaces(
         field_selector="spec.nodeName={}".format(node_name))
-
 
     # Now we will try to remove as much pods as we can
     eviction_candidates = []
@@ -213,7 +211,6 @@ def drain_node(node_name, duration):
         time.sleep(10)
     return True
 
-
 def get_pods(namespace=''):
     api_instance = client.CoreV1Api()
     try:
@@ -231,7 +228,7 @@ def get_pods(namespace=''):
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        nodes=dict(type='json', required=True),
+    nodes=dict(type='json', required=True),
         amount=dict(type='int', required=True),
         duration=dict(type='int', required=True),
     )
@@ -269,14 +266,26 @@ def run_module():
     client.api_client.ApiClient(configuration=configuration)
 
     nodes_list = json.loads(nodes)
-    module.log(msg='Nodes len:' + str(len(nodes_list)))
+    module.log(msg='Nodes list size:' + str(len(nodes_list)))
 
+    # We get the final list of nodes to drain
     if len(nodes_list) == 0:
-        # nodes_list = get_random_nodes(amount)
         module.log(msg='Nodes list is empty')
+        # nodes_list = get_random_nodes(amount)
+
+    # We cordon the nodes and drain them
     for node in nodes_list:
-        module.log(msg='Nodes to drain:' + json.dumps(nodes_list))
-        drain_node(node, duration):
+        module.log(msg='Node to drain:' + node)
+        # cordon_node(node)
+        # drain_node(node)
+
+    # We wait until the duration pass
+    time.sleep(duration)
+
+    # We restore the nodes
+    for node in nodes_list:
+        module.log(msg='Node to restore:' + node)
+        # uncordon_node(node_name)
 
     if module.check_mode:
         return result
