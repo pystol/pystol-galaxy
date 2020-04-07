@@ -26,7 +26,7 @@
       pystol.actions.drain_nodes:
         amount: "{{ pystol_drainnodes_amount | default(0) }}"
         nodes: "{{ pystol_drainnodes_nodes | default('{}') }}"
-        duration: "{{ pystol_drainnodes_duration | default(60)}}"
+        duration: "{{ pystol_drainnodes_duration | default(60) }}"
       register: testout
     - debug: msg="{{ testout.stderr }}"
     - debug: msg="{{ testout.stdout }}"
@@ -77,8 +77,8 @@
     #
     - name: Set Result facts
       set_fact:
-        pystol_action_stdout: "{{ ''.join(testout.stdout_lines) | replace('\\n', '') | replace('\\t', '') }}"
-        pystol_action_stderr: "{{ ''.join(testout.stderr_lines) | replace('\\n', '') | replace('\\t', '') }}"
+        pystol_action_stdout: "{{ ''.join(testout.stdout_lines | default([])) | replace('\\n', '') | replace('\\t', '') }}"
+        pystol_action_stderr: "{{ ''.join(testout.stderr_lines | default([])) | replace('\\n', '') | replace('\\t', '') }}"
     #
     # Begin: Mandatory
     #

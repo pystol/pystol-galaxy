@@ -1,12 +1,13 @@
-import random
 from ansible.module_utils.basic import AnsibleModule
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 
 import time
 import json
+from random import sample
 
 from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
+from ansible_collections.pystol.actions.plugins.module_utils.logger import get_logger
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -60,20 +61,20 @@ FACTS = [
 ]
 
 
-def evict_pod(name, namespace):
-    core_v1 = client.CoreV1Api()
-    body = kubernetes.client.V1beta1Eviction() # V1beta1Eviction
+def evict_pod(name, namespace, body):
+
+    api_instance = client.CoreV1Api()
     try:
-        api_response = core_v1.create_namespaced_pod_eviction(
-            name=name,
-            namespace=namespace,
-            body=body)
-        pprint(api_response)
-    except ApiException as e:
-        print("CoreV1Api->create_namespaced_pod_eviction: %s\n" % e)
+        api_instance.create_namespaced_pod_eviction(
+            name=name, namespace=namespace, body=body)
+    except ApiException as x:
+        raise Exception(
+            "Failed to evict pod {}: {}".format(
+                name, x.body))
 
 
 def cordon_node(name):
+    logger = get_logger("cordon_node")
     core_v1 = client.CoreV1Api()
     body = {
         "spec": {
@@ -81,16 +82,17 @@ def cordon_node(name):
         }
     }
     try:
-        api_response = core_v1.patch_node(
+        core_v1.patch_node(
             name=name,
             body=body)
-        print(api_response)
-    except ApiException as e:
-        module.log(msg=e)
-        print("CoreV1Api->cordon_node: %s\n" % e)
+        return True
+    except Exception as e:
+        logger.debug("Error: " + e)
+        return False
 
 
 def uncordon_node(name):
+    logger = get_logger("uncordon_node")
     core_v1 = client.CoreV1Api()
     body = {
         "spec": {
@@ -98,21 +100,33 @@ def uncordon_node(name):
         }
     }
     try:
-        api_response = core_v1.patch_node(
+        core_v1.patch_node(
             name=name,
             body=body)
-        print(api_response)
+        return True
+    except Exception as e:
+        logger.debug("Error: " + e)
+        return False
+
+
+def get_pods(node_name):
+    api_instance = client.CoreV1Api()
+    try:
+        api_response = api_instance.list_pod_for_all_namespaces(
+            field_selector="spec.nodeName={}".format(node_name))
+        return api_response
     except ApiException as e:
-        module.log(msg=e)
-        print("CoreV1Api->uncordon_node: %s\n" % e)
+        print("CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
+
 
 def drain_node(node_name):
-    module.log(msg="Draining node")
+    logger = get_logger("drain_node")
+    logger.debug("Starting to drain: " + node_name)
+
+    delete_pods_with_local_storage = False
 
     # We get all the pods from the node
-    core_v1 = client.CoreV1Api()
-    ret = v1.list_pod_for_all_namespaces(
-        field_selector="spec.nodeName={}".format(node_name))
+    ret = get_pods(node_name)
 
     # Now we will try to remove as much pods as we can
     eviction_candidates = []
@@ -122,7 +136,9 @@ def drain_node(node_name):
         volumes = pod.spec.volumes
         annotations = pod.metadata.annotations
 
-        # do not handle mirror pods
+        logger.debug("Checking POD: " + name)
+
+        # No mirror pods
         if annotations and "kubernetes.io/config.mirror" in annotations:
             logger.debug("Not deleting mirror pod '{}' on "
                          "node '{}'".format(name, node_name))
@@ -153,7 +169,7 @@ def drain_node(node_name):
                     "not evict it".format(name, node_name))
                 break
         else:
-            raise ActivityFailed(
+            raise Exception(
                 "Pod '{}' on node '{}' is unmanaged, cannot drain this "
                 "node. Delete it manually first?".format(name, node_name))
 
@@ -168,30 +184,29 @@ def drain_node(node_name):
         eviction.metadata = client.V1ObjectMeta()
         eviction.metadata.name = pod.metadata.name
         eviction.metadata.namespace = pod.metadata.namespace
-
         eviction.delete_options = client.V1DeleteOptions()
-        try:
-            v1.create_namespaced_pod_eviction(
-                pod.metadata.name, pod.metadata.namespace, body=eviction)
-        except ApiException as x:
-            raise ActivityFailed(
-                "Failed to evict pod {}: {}".format(
-                    pod.metadata.name, x.body))
+
+        evict_pod(name=pod.metadata.name,
+                  namespace=pod.metadata.namespace,
+                  body=eviction)
 
     pods = eviction_candidates[:]
     started = time.time()
+    timeout = 180
+    api_instance = client.CoreV1Api()
+
     while True:
         logger.debug("Waiting for {} pods to go".format(len(pods)))
         if time.time() - started > timeout:
             remaining_pods = "\n".join([p.metadata.name for p in pods])
-            raise ActivityFailed(
+            raise Exception(
                 "Draining nodes did not completed within {}s. "
                 "Remaining pods are:\n{}".format(timeout, remaining_pods))
 
         pending_pods = pods[:]
         for pod in pods:
             try:
-                p = v1.read_namespaced_pod(
+                p = api_instance.read_namespaced_pod(
                     pod.metadata.name, pod.metadata.namespace)
                 # rescheduled elsewhere?
                 if p.metadata.uid != pod.metadata.uid:
@@ -211,28 +226,29 @@ def drain_node(node_name):
         time.sleep(10)
     return True
 
-def get_pods(namespace=''):
+
+def get_worker_nodes():
     api_instance = client.CoreV1Api()
     try:
-        if namespace == '':
-            api_response = api_instance.list_pod_for_all_namespaces()
-        else:
-            api_response = api_instance.list_namespaced_pod(
-                namespace,
-                field_selector='status.phase=Running')
-        return api_response
+        names = []
+        api_response = api_instance.list_node(pretty='true', label_selector='node-role.kubernetes.io/worker')
+        for node in api_response.items:
+            names.append(node.metadata.name)
+        return names
+
     except ApiException as e:
-        print("CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
+        print("CoreV1Api->list_node: %s\n" % e)
 
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-    nodes=dict(type='json', required=True),
+        nodes=dict(type='json', required=True),
         amount=dict(type='int', required=True),
         duration=dict(type='int', required=True),
     )
 
+    global module
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True
@@ -241,10 +257,8 @@ def run_module():
     rc = 0
     stderr = "err"
     stderr_lines = ["errl1", "errl2"]
-    stdout ="out"
+    stdout = "out"
     stdout_lines = ["outl1", "outl1"]
-
-    module.log(msg='test!!!!!!!!!!!!!!!!!')
 
     nodes = module.params['nodes']
     amount = module.params['amount']
@@ -269,23 +283,42 @@ def run_module():
     module.log(msg='Nodes list size:' + str(len(nodes_list)))
 
     # We get the final list of nodes to drain
+    all_workers = get_worker_nodes()
     if len(nodes_list) == 0:
-        module.log(msg='Nodes list is empty')
-        # nodes_list = get_random_nodes(amount)
+        # This means that there are no specific nodes, get get random nodes
+        module.log(msg='Nodes list is empty, we get random nodes')
+        if amount >= len(all_workers):
+            amount = len(all_workers)
+        nodes_list = sample(all_workers, amount)
+    else:
+        aux_nodes = []
+        for node in nodes_list:
+            if node in all_workers:
+                aux_nodes.append(node)
+        nodes_list = aux_nodes
+
+    module.log(msg='Nodes to drain: ' + str(nodes_list))
 
     # We cordon the nodes and drain them
-    for node in nodes_list:
-        module.log(msg='Node to drain:' + node)
-        # cordon_node(node)
-        # drain_node(node)
+    for node_name in nodes_list:
+        module.log(msg='Node to cordon:' + node_name)
+        if cordon_node(node_name):
+            module.log(msg='Cordon OK - Node to drain:' + node_name)
+            drain_node(node_name)
+        else:
+            module.log(msg='Cordon NOT OK')
 
     # We wait until the duration pass
+    module.log(msg='Waiting for: ' + str(duration))
     time.sleep(duration)
 
     # We restore the nodes
-    for node in nodes_list:
-        module.log(msg='Node to restore:' + node)
-        # uncordon_node(node_name)
+    for node_name in nodes_list:
+        module.log(msg='Node to uncordon:' + node_name)
+        if uncordon_node(node_name):
+            module.log(msg='Uncordon OK')
+        else:
+            module.log(msg='Uncordon NOT OK')
 
     if module.check_mode:
         return result
