@@ -61,30 +61,41 @@ FACTS = [
 ]
 
 
-def evict_pod(name, namespace, body):
+def evict_pod(name, namespace):
+    """
+    Evict a pod from a node.
 
+    This method evicts a single pod from a node
+    """
+    logger = get_logger("evict_pod")
     api_instance = client.CoreV1Api()
+
+    ev = client.V1beta1Eviction()
+    ev.metadata = client.V1ObjectMeta()
+    ev.metadata.name = name
+    ev.metadata.namespace = namespace
+    ev.delete_options = client.V1DeleteOptions()
+
     try:
         api_instance.create_namespaced_pod_eviction(
-            name=name, namespace=namespace, body=body)
-    except ApiException as x:
-        raise Exception(
-            "Failed to evict pod {}: {}".format(
-                name, x.body))
+            name=name, namespace=namespace, body=ev)
+    except Exception as e:
+        logger.debug(e)
+        raise Exception("Failed to evict pod " +
+                        name + ": " + e)
 
 
 def cordon_node(name):
+    """
+    Cordon a node from the cluster.
+
+    This method set a node as unschedulable
+    """
     logger = get_logger("cordon_node")
     core_v1 = client.CoreV1Api()
-    body = {
-        "spec": {
-            "unschedulable": True
-        }
-    }
+    body = {"spec": {"unschedulable": True}}
     try:
-        core_v1.patch_node(
-            name=name,
-            body=body)
+        core_v1.patch_node(name=name, body=body)
         return True
     except Exception as e:
         logger.debug("Error: " + e)
@@ -92,17 +103,16 @@ def cordon_node(name):
 
 
 def uncordon_node(name):
+    """
+    Uncordon a node from the cluster.
+
+    This method set a node as schedulable
+    """
     logger = get_logger("uncordon_node")
     core_v1 = client.CoreV1Api()
-    body = {
-        "spec": {
-            "unschedulable": False
-        }
-    }
+    body = {"spec": {"unschedulable": False}}
     try:
-        core_v1.patch_node(
-            name=name,
-            body=body)
+        core_v1.patch_node(name=name, body=body)
         return True
     except Exception as e:
         logger.debug("Error: " + e)
@@ -110,16 +120,48 @@ def uncordon_node(name):
 
 
 def get_pods(node_name):
+    """
+    Get the pods of a specific node.
+
+    This method get the pods of a node
+    """
+    logger = get_logger("get_pods")
     api_instance = client.CoreV1Api()
     try:
         api_response = api_instance.list_pod_for_all_namespaces(
             field_selector="spec.nodeName={}".format(node_name))
         return api_response
     except ApiException as e:
+        logger.debug("Error: " + e)
         print("CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
 
 
+def get_worker_nodes():
+    """
+    Get all the workers from the cluster.
+
+    This method get the worker nodes
+    """
+    logger = get_logger("get_worker_nodes")
+    api_instance = client.CoreV1Api()
+    try:
+        names = []
+        resp = api_instance.list_node(pretty='true',
+                                      label_selector='node-role.kubernetes.io/worker')
+        for node in resp.items:
+            names.append(node.metadata.name)
+        return names
+    except ApiException as e:
+        logger.debug("Error: " + e)
+        print("CoreV1Api->list_node: %s\n" % e)
+
+
 def drain_node(node_name):
+    """
+    Drain a node from all the possible pods.
+
+    This method will drain a node
+    """
     logger = get_logger("drain_node")
     logger.debug("Starting to drain: " + node_name)
 
@@ -129,7 +171,7 @@ def drain_node(node_name):
     ret = get_pods(node_name)
 
     # Now we will try to remove as much pods as we can
-    eviction_candidates = []
+    to_evict = []
     for pod in ret.items:
         name = pod.metadata.name
         phase = pod.status.phase
@@ -138,30 +180,28 @@ def drain_node(node_name):
 
         logger.debug("Checking POD: " + name)
 
-        # No mirror pods
         if annotations and "kubernetes.io/config.mirror" in annotations:
-            logger.debug("Not deleting mirror pod '{}' on "
-                         "node '{}'".format(name, node_name))
+            logger.debug("Not deleting, mirror pod: " +
+                         name + "node: " + node_name)
             continue
 
         if any(filter(lambda v: v.empty_dir is not None, volumes)):
-            logger.debug(
-                "Pod '{}' on node '{}' has a volume made "
-                "of a local storage".format(name, node_name))
+            logger.debug("Pod " + name + " on node " + node_name +
+                         " has a volume made of a local storage")
             if not delete_pods_with_local_storage:
                 logger.debug("Not evicting a pod with local storage")
                 continue
-            logger.debug("Deleting anyway due to flag")
-            eviction_candidates.append(pod)
+            logger.debug("Deleting")
+            to_evict.append(pod)
             continue
 
         if phase in ["Succeeded", "Failed"]:
-            eviction_candidates.append(pod)
+            to_evict.append(pod)
             continue
 
         for owner in pod.metadata.owner_references:
             if owner.controller and owner.kind != "DaemonSet":
-                eviction_candidates.append(pod)
+                to_evict.append(pod)
                 break
             elif owner.kind == "DaemonSet":
                 logger.debug(
@@ -173,24 +213,16 @@ def drain_node(node_name):
                 "Pod '{}' on node '{}' is unmanaged, cannot drain this "
                 "node. Delete it manually first?".format(name, node_name))
 
-    if not eviction_candidates:
-        logger.debug("No pods to evict. Let's return.")
+    if not to_evict:
+        logger.debug("No pods to evict.")
         return True
 
-    logger.debug("Found {} pods to evict".format(len(eviction_candidates)))
-    for pod in eviction_candidates:
-        eviction = client.V1beta1Eviction()
-
-        eviction.metadata = client.V1ObjectMeta()
-        eviction.metadata.name = pod.metadata.name
-        eviction.metadata.namespace = pod.metadata.namespace
-        eviction.delete_options = client.V1DeleteOptions()
-
+    logger.debug("Found " + str(len(to_evict)) + "pods to evict")
+    for pod in to_evict:
         evict_pod(name=pod.metadata.name,
-                  namespace=pod.metadata.namespace,
-                  body=eviction)
+                  namespace=pod.metadata.namespace)
 
-    pods = eviction_candidates[:]
+    pods = to_evict[:]
     started = time.time()
     timeout = 180
     api_instance = client.CoreV1Api()
@@ -208,7 +240,7 @@ def drain_node(node_name):
             try:
                 p = api_instance.read_namespaced_pod(
                     pod.metadata.name, pod.metadata.namespace)
-                # rescheduled elsewhere?
+
                 if p.metadata.uid != pod.metadata.uid:
                     pending_pods.remove(pod)
                     continue
@@ -216,28 +248,14 @@ def drain_node(node_name):
                     p.metadata.name, p.status.phase))
             except ApiException as x:
                 if x.status == 404:
-                    # gone...
                     pending_pods.remove(pod)
         pods = pending_pods[:]
         if not pods:
-            logger.debug("Evicted all pods we could")
+            logger.debug("Evicted all possible pods")
             break
 
         time.sleep(10)
     return True
-
-
-def get_worker_nodes():
-    api_instance = client.CoreV1Api()
-    try:
-        names = []
-        api_response = api_instance.list_node(pretty='true', label_selector='node-role.kubernetes.io/worker')
-        for node in api_response.items:
-            names.append(node.metadata.name)
-        return names
-
-    except ApiException as e:
-        print("CoreV1Api->list_node: %s\n" % e)
 
 
 def run_module():
