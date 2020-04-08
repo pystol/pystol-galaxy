@@ -7,3 +7,4 @@ yamllint==1.15.0
 ansible-lint
 ansible-test
 bashate
+shyaml
