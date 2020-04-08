@@ -5,4 +5,5 @@ pytest==4.4.1
 tox==3.9.0
 yamllint==1.15.0
 ansible-lint
+ansible-test
 bashate

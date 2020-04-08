@@ -156,23 +156,16 @@ def get_worker_nodes():
         print("CoreV1Api->list_node: %s\n" % e)
 
 
-def drain_node(node_name):
+def calc_evict_list(pod_list):
     """
-    Drain a node from all the possible pods.
+    Calculate eviction list.
 
-    This method will drain a node
+    This method calculates the pods to remove
     """
-    logger = get_logger("drain_node")
-    logger.debug("Starting to drain: " + node_name)
-
+    logger = get_logger("calc_evict_list")
     delete_pods_with_local_storage = False
-
-    # We get all the pods from the node
-    ret = get_pods(node_name)
-
-    # Now we will try to remove as much pods as we can
     to_evict = []
-    for pod in ret.items:
+    for pod in pod_list:
         name = pod.metadata.name
         phase = pod.status.phase
         volumes = pod.spec.volumes
@@ -181,17 +174,15 @@ def drain_node(node_name):
         logger.debug("Checking POD: " + name)
 
         if annotations and "kubernetes.io/config.mirror" in annotations:
-            logger.debug("Not deleting, mirror pod: " +
-                         name + "node: " + node_name)
+            logger.debug("Not deleting, mirror pod: " + name)
             continue
 
         if any(filter(lambda v: v.empty_dir is not None, volumes)):
-            logger.debug("Pod " + name + " on node " + node_name +
+            logger.debug("Pod " + name +
                          " has a volume made of a local storage")
             if not delete_pods_with_local_storage:
                 logger.debug("Not evicting a pod with local storage")
                 continue
-            logger.debug("Deleting")
             to_evict.append(pod)
             continue
 
@@ -204,56 +195,62 @@ def drain_node(node_name):
                 to_evict.append(pod)
                 break
             elif owner.kind == "DaemonSet":
-                logger.debug(
-                    "Pod '{}' on node '{}' is owned by a DaemonSet. Will "
-                    "not evict it".format(name, node_name))
+                logger.debug("Pod " + name + "is owned by a DaemonSet")
                 break
         else:
             raise Exception(
-                "Pod '{}' on node '{}' is unmanaged, cannot drain this "
-                "node. Delete it manually first?".format(name, node_name))
+                "Pod " + name + " is unmanaged, "
+                "can not drain. Delete it manually")
+    return to_evict
 
+
+def drain_node(node_name):
+    """
+    Drain a node from all the possible pods.
+
+    This method will drain a node
+    """
+    logger = get_logger("drain_node")
+    logger.debug("Starting to drain: " + node_name)
+    # We get all the pods from the node
+    ret = get_pods(node_name)
+    # Now we will try to remove as much pods as we can
+    to_evict = calc_evict_list(ret.items)
     if not to_evict:
-        logger.debug("No pods to evict.")
+        logger.debug("No pods to remove from node.")
         return True
-
     logger.debug("Found " + str(len(to_evict)) + "pods to evict")
     for pod in to_evict:
         evict_pod(name=pod.metadata.name,
                   namespace=pod.metadata.namespace)
-
     pods = to_evict[:]
     started = time.time()
     timeout = 180
     api_instance = client.CoreV1Api()
-
     while True:
-        logger.debug("Waiting for {} pods to go".format(len(pods)))
+        logger.debug("Waiting for " + str(len(pods)) + "pods to go")
         if time.time() - started > timeout:
             remaining_pods = "\n".join([p.metadata.name for p in pods])
             raise Exception(
-                "Draining nodes did not completed within {}s. "
-                "Remaining pods are:\n{}".format(timeout, remaining_pods))
-
+                "Draining nodes did not completed within " + timeout + "s."
+                "Remaining pods are: " + remaining_pods)
         pending_pods = pods[:]
         for pod in pods:
             try:
                 p = api_instance.read_namespaced_pod(
                     pod.metadata.name, pod.metadata.namespace)
-
                 if p.metadata.uid != pod.metadata.uid:
                     pending_pods.remove(pod)
                     continue
-                logger.debug("Pod '{}' still around in phase: {}".format(
-                    p.metadata.name, p.status.phase))
+                logger.debug("Pod " + p.metadata.name + " still around "
+                             "in phase: " + p.status.phase)
             except ApiException as x:
                 if x.status == 404:
                     pending_pods.remove(pod)
         pods = pending_pods[:]
         if not pods:
-            logger.debug("Evicted all possible pods")
+            logger.debug("Evicted all pods")
             break
-
         time.sleep(10)
     return True
 
