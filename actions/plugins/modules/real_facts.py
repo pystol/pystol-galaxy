@@ -4,9 +4,6 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-import random
-from ansible.module_utils.basic import AnsibleModule
-
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
@@ -51,6 +48,10 @@ FACTS = [
     "{name} is a smart cookie.",
     "I’d choose {name}'s company over pizza anytime."
 ]
+
+
+import random
+from ansible.module_utils.basic import AnsibleModule
 
 
 def run_module():

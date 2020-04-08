@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/python
+
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
 
 """
 Copyright 2019 Pystol (pystol.org).

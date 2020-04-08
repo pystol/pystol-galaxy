@@ -4,16 +4,6 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-from ansible.module_utils.basic import AnsibleModule
-from kubernetes import client
-from kubernetes.client.rest import ApiException
-
-import time
-import json
-from random import sample
-
-from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
-from ansible_collections.pystol.actions.plugins.module_utils.logger import get_logger
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -65,6 +55,18 @@ FACTS = [
     "{name} is a smart cookie.",
     "I’d choose {name}'s company over pizza anytime."
 ]
+
+
+from ansible.module_utils.basic import AnsibleModule
+from kubernetes import client
+from kubernetes.client.rest import ApiException
+
+import time
+import json
+from random import sample
+
+from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
+from ansible_collections.pystol.actions.plugins.module_utils.logger import get_logger
 
 
 def evict_pod(name, namespace):

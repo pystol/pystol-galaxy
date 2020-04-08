@@ -4,11 +4,6 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-from ansible.module_utils.basic import AnsibleModule
-from kubernetes import client
-from kubernetes.client.rest import ApiException
-
-from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -54,6 +49,13 @@ fact:
     type: str
     sample: Jane Doe is a smart cookie.
 '''
+
+
+from ansible.module_utils.basic import AnsibleModule
+from kubernetes import client
+from kubernetes.client.rest import ApiException
+
+from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
 
 
 def patch_cr(name, key, value):
