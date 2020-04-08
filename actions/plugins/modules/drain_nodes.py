@@ -1,3 +1,9 @@
+#!/usr/bin/python
+
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
 from ansible.module_utils.basic import AnsibleModule
 from kubernetes import client
 from kubernetes.client.rest import ApiException
@@ -35,7 +41,7 @@ options:
         default: 60
 
 author:
-    - Carlos Camacho
+    - "Carlos Camacho (@ccamacho)"
 '''
 
 EXAMPLES = '''

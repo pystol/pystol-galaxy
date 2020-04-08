@@ -1,3 +1,9 @@
+#!/usr/bin/python
+
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
 import random
 from ansible.module_utils.basic import AnsibleModule
 
@@ -23,7 +29,7 @@ options:
         default: Jane Doe
 
 author:
-    - David Newswanger (@newswangerd)
+    - "Carlos Camacho (@ccamacho)"
 '''
 
 EXAMPLES = '''
