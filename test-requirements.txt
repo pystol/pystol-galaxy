@@ -8,3 +8,4 @@ ansible-lint
 ansible-test
 bashate
 Jinja2==2.11.1
+shyaml
