@@ -81,7 +81,7 @@ import matplotlib.pyplot as plt
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 import datetime
-
+import time
 from ansible_collections.pystol.actions.plugins.module_utils.k8s_common import load_kubernetes_config
 
 
@@ -189,6 +189,7 @@ def run_module():
                        pod.metadata.namespace)
         print("To be killed: " + str(experiment))
         global_kill.append((datetime.datetime.now(), int(experiment)))
+        time.sleep(10)
         print(datetime.datetime.now())
     print("Ending histogram execution")
 
