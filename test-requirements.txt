@@ -7,5 +7,5 @@ yamllint==1.15.0
 ansible-lint
 ansible-test
 bashate
-Jinja2==2.11.1
+Jinja2==2.11.3
 shyaml
